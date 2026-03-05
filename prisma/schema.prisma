@@ -1,0 +1,138 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Gym {
+  id          String   @id @default(uuid())
+  gymName     String
+  ownerName   String
+  address     String?
+  city        String?
+  state       String?
+  pincode     String?
+  phoneNumber String?
+  email       String   @unique
+
+  isDeleted  Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  members     Member[]
+  plans       Plan[]
+  payments    Payment[]
+  attendance  Attendance[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  gymId        String
+  fullName     String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  isDeleted  Boolean  @default(false)
+
+  gym   Gym @relation(fields: [gymId], references: [id])
+  member Member?
+
+  @@index([gymId])
+}
+
+model Plan {
+  id           String   @id @default(uuid())
+  gymId        String
+  planName     String
+  durationDays Int
+  price        Decimal
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  isDeleted  Boolean  @default(false)
+
+  gym     Gym @relation(fields: [gymId], references: [id])
+  members Member[]
+
+  @@index([gymId])
+}
+
+model Member {
+  id         String   @id @default(uuid())
+  gymId      String
+  userId     String   @unique
+  planId     String
+  fullName   String?
+  startDate  DateTime
+  expiryDate DateTime
+  status     MemberStatus @default(ACTIVE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  isDeleted  Boolean  @default(false)
+
+  gym        Gym  @relation(fields: [gymId], references: [id])
+  user       User @relation(fields: [userId], references: [id])
+  plan       Plan @relation(fields: [planId], references: [id])
+  payments   Payment[]
+  attendance Attendance[]
+
+  @@index([gymId])
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  gymId       String
+  memberId    String
+  amount      Decimal
+  paymentDate DateTime
+  mode        PaymentMode
+  createdAt   DateTime @default(now())
+
+  gym     Gym    @relation(fields: [gymId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([gymId])
+}
+
+model Attendance {
+  id             String   @id @default(uuid())
+  gymId          String
+  memberId       String
+  attendanceDate DateTime
+  checkInTime    DateTime @default(now())
+
+  gym    Gym    @relation(fields: [gymId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([memberId, attendanceDate])
+
+  @@index([gymId])
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  MEMBER
+}
+
+enum MemberStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+}
+
