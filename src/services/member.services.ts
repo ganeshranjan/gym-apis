@@ -1,4 +1,4 @@
-import { Prisma, Role } from "@prisma/client";
+import { PaymentMode, Prisma, Role } from "@prisma/client";
 import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -21,6 +21,11 @@ interface UpdateMemberData {
   email?: string;
   phone?: string;
   planId?: string;
+}
+
+interface CreatePaymentData {
+  memberId: string;
+  mode: PaymentMode;
 }
 
 export const createMemberService = async (
@@ -321,4 +326,61 @@ export const deleteMemberByIdService = async (
     message: "Member deleted successfully",
     memberId,
   };
+};
+
+export const getMemberPaymentsService = async (
+  data: CreatePaymentData,
+  currentUser: CurrentUser,
+) => {
+  const { memberId, mode } = data;
+
+  const member = await prisma.member.findFirst({
+    where: {
+      id: memberId,
+      gymId: currentUser.gymId,
+      isDeleted: false,
+    },
+    include: { plan: true },
+  });
+
+  console.log("memberheregetMemberPaymentsService", member, currentUser);
+  if (!member) {
+    throw new Error("Member not found");
+  }
+
+  const today = new Date();
+
+  const baseDate =
+    member.expiryDate && member.expiryDate > today ? member.expiryDate : today;
+
+  const newExpiryDate = new Date(
+    baseDate.getTime() + member.plan.durationDays * 24 * 60 * 60 * 1000,
+  );
+
+  const result = await prisma.$transaction(async (tx) => {
+    const payment = await tx.payment.create({
+      data: {
+        gymId: currentUser.gymId,
+        memberId,
+        amount: member.plan.price,
+        mode,
+        paymentDate: new Date(),
+      },
+    });
+
+    await tx.member.update({
+      where: { id: memberId },
+      data: {
+        expiryDate: newExpiryDate,
+        status: "ACTIVE",
+      },
+    });
+
+    return {
+      payment,
+      expiryDate: newExpiryDate,
+    };
+  });
+
+  return result;
 };

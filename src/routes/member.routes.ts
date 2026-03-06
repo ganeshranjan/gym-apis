@@ -7,7 +7,7 @@ import {
   updateMemberController,
   changePlanController,
   deleteMemberByIdController,
-  // getMemberPaymentsController,
+  getMemberPaymentsController,
 } from "../controllers/member.controllers";
 import { Role } from "@prisma/client";
 
@@ -45,9 +45,10 @@ router.delete(
   deleteMemberByIdController,
 );
 
-router.get(
-  "/:id/payments",
+router.post(
+  "/:id/create-payment",
   authorize(Role.OWNER, Role.MANAGER),
+  getMemberPaymentsController,
   // getMemberPaymentsController,
 );
 

@@ -26,7 +26,6 @@ export const getPlansController = async (req: Request, res: Response) => {
   console.log("getPlansController", req.user?.gymId);
   try {
     const plans = await planServices.getPlansService(req.user?.gymId as string);
-    console.log("get all plans here ------> ", plans);
     res.status(200).json(plans);
   } catch (error) {
     console.error("getPlansController error:", error);
@@ -43,10 +42,8 @@ export const updatePlanController = async (req: Request, res: Response) => {
     const updatedPlan = await planServices.updatePlanService(planId, req.body, {
       gymId: req.user?.gymId as string,
     });
-    console.log("updatedPlan------> controller", updatedPlan);
     res.status(200).json(updatedPlan);
   } catch (error) {
-    console.error("updatePlanController error:", error);
     res.status(500).json({ message: "Internal server error " + error });
   }
 };
