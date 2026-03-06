@@ -94,14 +94,16 @@ model Payment {
   gymId       String
   memberId    String
   amount      Decimal
-  paymentDate DateTime
+  paymentDate DateTime @default(now())
   mode        PaymentMode
   createdAt   DateTime @default(now())
+  status      PaymentStatus @default(SUCCESS)
 
   gym     Gym    @relation(fields: [gymId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
 
   @@index([gymId])
+  @@index([memberId])
 }
 
 model Attendance {
@@ -136,3 +138,8 @@ enum PaymentMode {
   CARD
 }
 
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  REFUNDED
+}

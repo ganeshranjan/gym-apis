@@ -137,3 +137,9 @@ export const deleteMemberByIdController = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// const getMemberPaymentsController = async (req: Request, res: Response) => {
+//   try {
+
+//   }
+// }
