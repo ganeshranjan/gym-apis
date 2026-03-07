@@ -138,10 +138,7 @@ export const deleteMemberByIdController = async (
   }
 };
 
-export const getMemberPaymentsController = async (
-  req: Request,
-  res: Response,
-) => {
+export const createPaymentController = async (req: Request, res: Response) => {
   try {
     const memberId = req.params.id as string;
     console.log("getMemberPaymentsController", memberId);
@@ -162,13 +159,32 @@ export const getMemberPaymentsController = async (
       memberId,
       mode,
     };
-    const payment = await memberServices.getMemberPaymentsService(
-      data,
-      req.user,
-    );
+    const payment = await memberServices.createPaymentService(data, req.user);
     res.status(201).json(payment);
   } catch (error) {
     console.error("createPaymentController error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getMemberPaymentsController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const memberId = req.params.id as string;
+    console.log("getMemberPaymentsController", memberId);
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    const payments = await memberServices.getMemberPaymentsService(
+      memberId,
+      req.user,
+    );
+    res.status(200).json(payments);
+  } catch (error) {
+    console.error("getMemberPaymentsController error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

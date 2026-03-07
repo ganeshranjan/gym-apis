@@ -12,58 +12,42 @@ interface CreatePaymentData {
   mode: PaymentMode;
 }
 
-// export const createPaymentService = async (
-//   data: CreatePaymentData,
-//   currentUser: CurrentUser,
-// ) => {
-//   const { memberId, mode } = data;
+interface GetPaymentsFilter {
+  startDate?: string;
+  endDate?: string;
+}
 
-//   const member = await prisma.member.findFirst({
-//     where: {
-//       id: memberId,
-//       gymId: currentUser.gymId,
-//       isDeleted: false,
-//     },
-//     include: { plan: true },
-//   });
-
-//   if (!member) {
-//     throw new Error("Member not found");
-//   }
-
-//   const today = new Date();
-
-//   const baseDate =
-//     member.expiryDate && member.expiryDate > today ? member.expiryDate : today;
-
-//   const newExpiryDate = new Date(
-//     baseDate.getTime() + member.plan.durationDays * 24 * 60 * 60 * 1000,
-//   );
-
-//   const result = await prisma.$transaction(async (tx) => {
-//     const payment = await tx.payment.create({
-//       data: {
-//         gymId: currentUser.gymId,
-//         memberId,
-//         amount: member.plan.price,
-//         mode,
-//         paymentDate: new Date(),
-//       },
-//     });
-
-//     await tx.member.update({
-//       where: { id: memberId },
-//       data: {
-//         expiryDate: newExpiryDate,
-//         status: "ACTIVE",
-//       },
-//     });
-
-//     return {
-//       payment,
-//       expiryDate: newExpiryDate,
-//     };
-//   });
-
-//   return result;
-// };
+export const getPaymentsService = async (
+    filter: GetPaymentsFilter,
+    currentUser: CurrentUser
+  ) => {
+    const { startDate, endDate } = filter;
+  
+    const whereClause: any = {
+      gymId: currentUser.gymId
+    };
+  
+    if (startDate && endDate) {
+      whereClause.paymentDate = {
+        gte: new Date(startDate as string),
+        lte: new Date(endDate as string)
+      };
+    }
+  
+    const payments = await prisma.payment.findMany({
+      where: whereClause,
+      include: {
+        member: {
+          select: {
+            id: true,
+            userId: true
+          }
+        }
+      },
+      orderBy: {
+        paymentDate: "desc"
+      }
+    });
+  
+    return payments;
+  };

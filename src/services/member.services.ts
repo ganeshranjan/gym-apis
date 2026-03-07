@@ -328,7 +328,7 @@ export const deleteMemberByIdService = async (
   };
 };
 
-export const getMemberPaymentsService = async (
+export const createPaymentService = async (
   data: CreatePaymentData,
   currentUser: CurrentUser,
 ) => {
@@ -383,4 +383,18 @@ export const getMemberPaymentsService = async (
   });
 
   return result;
+};
+
+export const getMemberPaymentsService = async (
+  memberId: string,
+  currentUser: CurrentUser,
+) => {
+  const payments = await prisma.payment.findMany({
+    where: {
+      memberId: memberId,
+      gymId: currentUser.gymId,
+    },
+  });
+  console.log("paymentsheregetMemberPaymentsService", payments);
+  return payments;
 };
