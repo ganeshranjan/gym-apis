@@ -1,19 +1,18 @@
 // const express = require("express");
 import { Router } from "express";
+import { authMiddleware } from "../middleware/auth.middleware";
 
-import { registerGym, login } from "../controllers/auth.controllers";
+import {
+  registerGym,
+  login,
+  getCurrentUserController,
+} from "../controllers/auth.controllers";
 const router = Router();
 
 router.post("/register-gym", registerGym);
 router.post("/login", login);
 
-// router.post('login', loginUser);
-// router.post('logout', logoutUser);
-// router.post('forgot-password', forgotPassword);
-// router.post('reset-password', resetPassword);
-// router.post('verify-email', verifyEmail);
-// router.post('resend-verification-email', resendVerificationEmail);
-// router.post('send-password-reset-email', sendPasswordResetEmail);
-// router.post('reset-password', resetPassword);
+/* Get current logged-in user */
+router.get("/me", authMiddleware, getCurrentUserController);
 
 export default router;

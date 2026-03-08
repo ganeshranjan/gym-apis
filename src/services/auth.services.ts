@@ -2,7 +2,14 @@ import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Response } from "express";
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
+
+/** Auth payload shape (req.user from auth middleware). */
+interface CurrentUser {
+  userId: string;
+  gymId: string;
+  role: Role;
+}
 
 interface RegisterGymData {
   gymName: string;
@@ -131,4 +138,27 @@ export const loginService = async (data: LoginData, res: Response) => {
       gymId: existingUser.gymId,
     },
   };
+};
+
+export const getCurrentUserService = async (currentUser: CurrentUser) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      id: currentUser.userId,
+      gymId: currentUser.gymId,
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      role: true,
+      gymId: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
 };

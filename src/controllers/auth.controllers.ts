@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   registerGym as registerGymService,
   loginService as loginService,
+  getCurrentUserService as getCurrentUserService,
 } from "../services/auth.services";
 
 export const registerGym = async (
@@ -55,5 +56,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
   } catch (error) {
     console.error("login error:", error);
+  }
+};
+
+export const getCurrentUserController = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await getCurrentUserService(req.user);
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("getCurrentUserController error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
