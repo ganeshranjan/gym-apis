@@ -7,11 +7,11 @@ export const createMemberController = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { name, email, phone, planId } = req.body;
+    const { fullName, email, phone, planId } = req.body;
     console.log("createMember", req.body);
-    if (!name || !email || !phone || !planId) {
+    if (!fullName || !email || !phone || !planId) {
       res.status(400).json({
-        message: "Name, email, phone and planId are required",
+        message: "fullName, email, phone and planId are required",
       });
       return;
     }

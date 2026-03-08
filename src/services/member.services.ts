@@ -3,7 +3,7 @@ import prisma from "../lib/prisma";
 import bcrypt from "bcryptjs";
 
 interface CreateMemberData {
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
   planId: string;
@@ -32,7 +32,7 @@ export const createMemberService = async (
   data: CreateMemberData,
   currentUser: CurrentUser,
 ) => {
-  const { name, email, phone, planId } = data;
+  const { fullName, email, phone, planId } = data;
 
   const plan = await prisma.plan.findFirst({
     where: {
@@ -67,12 +67,12 @@ export const createMemberService = async (
   const expiryDate = new Date(
     startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000,
   );
-
+  console.log("startDateherecreateMemberService", startDate);
   const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
         gymId: currentUser.gymId,
-        fullName: name,
+        fullName: fullName,
         phone,
         email,
         passwordHash: hashedPassword,
@@ -83,7 +83,7 @@ export const createMemberService = async (
     const member = await tx.member.create({
       data: {
         gymId: currentUser.gymId,
-        fullName: name,
+        fullName: fullName,
         planId: plan.id,
         userId: user.id,
         startDate: startDate,
@@ -92,6 +92,7 @@ export const createMemberService = async (
       } as unknown as Prisma.MemberUncheckedCreateInput,
     });
 
+    console.log("memberherecreateMemberService", member);
     return member;
   });
 
